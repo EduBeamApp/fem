@@ -28,7 +28,11 @@ test("Cantilever - uniform temperature change", () => {
   expect(reactions.get([1])).toBeCloseTo(0);
   expect(reactions.get([2])).toBeCloseTo(0);
 
-  expect(unknowns.get([0])).toBeCloseTo(2 * 12e-6 * 100, 6);
-  expect(unknowns.get([1])).toBeCloseTo(0);
-  expect(unknowns.get([2])).toBeCloseTo(0);
+  // Free to grow and to curve: it lengthens by alpha T L, and with the bottom 200 K warmer than the
+  // top it curves upwards by kappa = alpha dT / h, so the tip rises kappa L^2 / 2 and turns kappa L.
+  // (Checked to the default two decimals, a deflection of 4.8 mm used to pass as zero.)
+  const kappa = (12e-6 * 200) / 1;
+  expect(unknowns.get([0])).toBeCloseTo(2 * 12e-6 * 100, 12);
+  expect(unknowns.get([1])).toBeCloseTo((-kappa * 2 * 2) / 2, 12);
+  expect(unknowns.get([2])).toBeCloseTo(kappa * 2, 12);
 });

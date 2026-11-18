@@ -66,14 +66,19 @@ export class BeamConcentratedLoad extends BeamElementLoad {
 
     const a = this.values[3];
     const b = l - a;
+    // Exact for a member that deforms in shear too (Timoshenko); Phi = 0 gives the Euler-Bernoulli values
+    const phi = (this.domain.getElement(this.target) as Beam2D).computeShearFactor();
+    const d = 1 + phi;
+    const l2 = l * l;
+    const l3 = l2 * l;
 
     return [
       (-b / l) * fx,
-      (b / l) * ((a * (a - b)) / l / l - 1) * fz - (6 * a * b * my) / (l * l * l),
-      ((a * b * b) / l / l) * fz - (b * (b - 2 * a) * my) / (l * l),
+      (-fz * b * (phi * l2 + 3 * a * b + b * b)) / (d * l3) - (6 * a * b * my) / (d * l3),
+      (fz * a * b * (phi * l + 2 * b)) / (2 * d * l2) - (my * b * (phi * l - 2 * a + b)) / (d * l2),
       (-a / l) * fx,
-      (a / l) * ((b * (b - a)) / l / l - 1) * fz + (6 * a * b * my) / (l * l * l),
-      ((-a * a * b) / l / l) * fz - (a * (a - 2 * b) * my) / (l * l),
+      (-fz * a * (phi * l2 + a * a + 3 * a * b)) / (d * l3) + (6 * a * b * my) / (d * l3),
+      (-fz * a * b * (phi * l + 2 * a)) / (2 * d * l2) - (my * a * (phi * l + a - 2 * b)) / (d * l2),
     ];
   }
 
@@ -126,32 +131,67 @@ export class BeamConcentratedLoad extends BeamElementLoad {
     const iy = this.domain.getElement(this.target).getCS().iy;
 
     const a = this.values[3];
-    const b = l - a;
-
-    const Za = (b / l) * ((a * (a - b)) / l / l - 1) * Fzloc;
-    const Ma = ((a * b * b) / l / l) * Fzloc;
-    const Va = (-6 * a * b * Myloc) / (l * l * l);
-    const Mya = (-b * (b - 2 * a) * Myloc) / (l * l);
     const EI = e * iy;
     const EA = e * area;
     const x = xl * l;
+    const phi = (elem as Beam2D).computeShearFactor();
+    const P = Fzloc;
+    const C = Myloc;
 
     let u = 0;
-    let w = 0;
+    if (x < a) u += (((l - a) / l) * Fxloc * x) / EA;
+    else u += (((l - a) / l) * Fxloc * a) / EA - ((a / l) * Fxloc * (x - a)) / EA;
 
-    if (x < a) u += ((b / l) * Fxloc * x) / EA;
-    else u += ((b / l) * Fxloc * a) / EA - ((a / l) * Fxloc * (x - a)) / EA;
-
-    if (x > a) {
-      w = ((Za * Math.pow(x, 3)) / 6 + (Ma * Math.pow(x, 2)) / 2 + (Fzloc * Math.pow(x - a, 3)) / 6) / EI;
+    // Held at both ends, with shear deformation (exact Timoshenko solutions, derived with sympy),
+    // either side of the load: the force P across the member, then the couple C
+    const d = EI * l ** 3 * (1 + phi);
+    let w: number;
+    if (x <= a) {
+      w =
+        (-P *
+          x *
+          (a - l) *
+          (phi * phi * l ** 4 -
+            2 * phi * a * a * l * l +
+            phi * a * l ** 3 +
+            3 * phi * a * l * l * x +
+            phi * l ** 4 -
+            2 * phi * l * l * x * x -
+            6 * a * a * l * x +
+            4 * a * a * x * x +
+            6 * a * l * l * x -
+            2 * a * l * x * x -
+            2 * l * l * x * x)) /
+          (12 * d) +
+        (C * x * (a - l) * (-phi * a * l * l + phi * l * l * x - 3 * a * l * x + 2 * a * x * x + l * l * x)) / (2 * d);
     } else {
-      w = ((Za * Math.pow(x, 3)) / 6 + (Ma * Math.pow(x, 2)) / 2) / EI;
-    }
-
-    if (x > a) {
-      w += ((Va * Math.pow(x, 3)) / 6 + (Mya * Math.pow(x, 2)) / 2 + (Myloc * Math.pow(x - a, 2)) / 2) / EI;
-    } else {
-      w += ((Va * Math.pow(x, 3)) / 6 + (Mya * Math.pow(x, 2)) / 2) / EI;
+      w =
+        (-P *
+          a *
+          (x - l) *
+          (phi * phi * l ** 4 -
+            2 * phi * a * a * l * l +
+            3 * phi * a * l * l * x +
+            phi * l ** 4 +
+            phi * l ** 3 * x -
+            2 * phi * l * l * x * x -
+            2 * a * a * l * l -
+            2 * a * a * l * x +
+            4 * a * a * x * x +
+            6 * a * l * l * x -
+            6 * a * l * x * x)) /
+          (12 * d) +
+        (C *
+          a *
+          (x - l) *
+          (-phi * a * l * l +
+            phi * l * l * x -
+            a * l * l -
+            a * l * x +
+            2 * a * x * x +
+            2 * l * l * x -
+            2 * l * x * x)) /
+          (2 * d);
     }
 
     return { u: u, w: w };

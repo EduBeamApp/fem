@@ -95,6 +95,35 @@ export class Beam2D extends Element {
     return t;
   }
   /**
+   * The share of shear in the member's bending flexibility, Phi = 12 EI / (k G A l^2): zero for a
+   * member that does not deform in shear (Euler-Bernoulli), and growing as it gets short and deep.
+   * The stiffness, the loads' fixed-end forces and the deflected shape all depend on it.
+   */
+  computeShearFactor(): number {
+    const mat = this.getMaterial();
+    const cs = this.getCS();
+    const l = this.computeGeo().l;
+    return (12 * mat.e * cs.iy) / (cs.k * mat.g * cs.a * l * l);
+  }
+
+  /**
+   * The deflection across the member at xi (0 to 1 along it) from unit end displacements
+   * [w1, phi1, w2, phi2]: the exact Timoshenko shapes, which are the classic cubic ones when the
+   * member does not deform in shear. Rotations are phi = -w' in that case.
+   */
+  computeEndShapes(xi: number): [number, number, number, number] {
+    const l = this.computeGeo().l;
+    const phi = this.computeShearFactor();
+    const d = 1 + phi;
+    return [
+      ((1 - xi) * (phi + 1 + xi - 2 * xi * xi)) / d,
+      (l * xi * (xi - 1) * (phi + 2 - 2 * xi)) / (2 * d),
+      (xi * (phi + 3 * xi - 2 * xi * xi)) / d,
+      (-l * xi * (xi - 1) * (phi + 2 * xi)) / (2 * d),
+    ];
+  }
+
+  /**
    * Computes Beam2D local stifness matrix
    * @param retCondenseSubMats when true, extended info on condensed DOFs is provided
    */
@@ -108,7 +137,7 @@ export class Beam2D extends Element {
     const l = geo.l;
     const l2 = l * l;
     const l3 = l2 * l;
-    const fi = (12 * eiy) / (cs.k * mat.g * cs.a * l * l);
+    const fi = this.computeShearFactor();
     const fi1 = 1 + fi;
     const answer = math.matrix([
       [ea / l, 0, 0, -ea / l, 0, 0],
@@ -413,18 +442,13 @@ export class Beam2D extends Element {
     const rl = this.computeEndDisplacement(lc);
     const u: number[] = [];
     const w: number[] = [];
-    const geo = this.computeGeo();
-    const l = geo.l;
 
     const eloads = lc.getElementLoadsOnElement(this.label);
     for (let iseg = 0; iseg <= nseg; iseg++) {
       const xl = iseg / nseg; // [0,1]
       // components from end displacements
-      let wl =
-        (1.0 - 3.0 * xl * xl + 2.0 * xl * xl * xl) * rl.get([1]) +
-        l * (-xl + 2.0 * xl * xl - xl * xl * xl) * rl.get([2]) +
-        (3.0 * xl * xl - 2.0 * xl * xl * xl) * rl.get([4]) +
-        l * (xl * xl - xl * xl * xl) * rl.get([5]);
+      const n = this.computeEndShapes(xl);
+      let wl = n[0] * rl.get([1]) + n[1] * rl.get([2]) + n[2] * rl.get([4]) + n[3] * rl.get([5]);
       let ul = (1 - xl) * rl.get([0]) + xl * rl.get([3]);
       // add contributions of loads
       for (const load of eloads) {
@@ -500,17 +524,12 @@ export class Beam2D extends Element {
     const rl = this.computeEndDisplacementEigenMode(lc, ntheig);
     const u: number[] = [];
     const w: number[] = [];
-    const geo = this.computeGeo();
-    const l = geo.l;
 
     for (let iseg = 0; iseg <= nseg; iseg++) {
       const xl = iseg / nseg; // [0,1]
       // components from end displacements
-      const wl =
-        (1.0 - 3.0 * xl * xl + 2.0 * xl * xl * xl) * rl.get([1]) +
-        l * (-xl + 2.0 * xl * xl - xl * xl * xl) * rl.get([2]) +
-        (3.0 * xl * xl - 2.0 * xl * xl * xl) * rl.get([4]) +
-        l * (xl * xl - xl * xl * xl) * rl.get([5]);
+      const n = this.computeEndShapes(xl);
+      const wl = n[0] * rl.get([1]) + n[1] * rl.get([2]) + n[2] * rl.get([4]) + n[3] * rl.get([5]);
       const ul = (1 - xl) * rl.get([0]) + xl * rl.get([3]);
       u.push(ul);
       w.push(wl);

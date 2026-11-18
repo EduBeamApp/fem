@@ -104,13 +104,16 @@ export class BeamElementUniformEdgeLoad extends BeamElementLoad {
 
   computeBeamDeflectionContrib(xl: number): { u: number; w: number } {
     const f = this.getLocalIntensities();
-    const elem = this.domain.elements.get(this.target);
+    const elem = this.domain.getElement(this.target) as Beam2D;
     const geo = elem.computeGeo();
     const l = geo.l;
+    // Held at both ends: bending, q x^2 (l - x)^2 / 24EI, and shear, q x (l - x) / 2kGA
+    const phi = elem.computeShearFactor();
     const w =
-      (f.fz * l * l * l * l * ((xl * xl * xl * xl) / 24 - (xl * xl * xl) / 12 + (xl * xl) / 24)) /
-      (elem.getMaterial().e * elem.getCS().iy);
-    const u = 0.0;
+      (f.fz * l * l * l * l * xl * (1 - xl) * (phi + xl - xl * xl)) / (24 * elem.getMaterial().e * elem.getCS().iy);
+    // The bar held at both ends under its axial load: EA u'' = -fx, u(0) = u(l) = 0
+    const x = xl * l;
+    const u = (f.fx * x * (l - x)) / (2 * elem.getMaterial().e * elem.getCS().a);
     return { u: u, w: w };
   }
   computeBeamNContrib(x: number): number {

@@ -69,11 +69,17 @@ export class BeamElementTrapezoidalEdgeLoad extends BeamElementLoad {
         const fx1Node = (-l / 6) * (2 * fx0 + fx1);
         const fx2Node = (-l / 6) * (fx0 + 2 * fx1);
 
-        const fz1Node = (-l / 20) * (7 * fz0 + 3 * fz1);
-        const fz2Node = (-l / 20) * (3 * fz0 + 7 * fz1);
+        // A uniform part fz0, whose fixed-end forces do not depend on shear deformation, and a part
+        // rising linearly to dz at the end, whose do (Phi = 0 gives the Euler-Bernoulli values)
+        const phi = (this.domain.getElement(this.target) as Beam2D).computeShearFactor();
+        const dz = fz1 - fz0;
+        const d = 1 + phi;
 
-        const m1Node = l * l * ((fz0 / 20) + fz1 / 30);
-        const m2Node = -l * l * (fz0 / 30 + fz1 / 20);
+        const fz1Node = (-l / 2) * fz0 - (dz * l * (10 * phi + 9)) / (60 * d);
+        const fz2Node = (-l / 2) * fz0 - (dz * l * (20 * phi + 21)) / (60 * d);
+
+        const m1Node = (fz0 * l * l) / 12 + (dz * l * l * (5 * phi + 4)) / (120 * d);
+        const m2Node = (-fz0 * l * l) / 12 - (dz * l * l * (5 * phi + 6)) / (120 * d);
 
         return [fx1Node, fz1Node, m1Node, fx2Node, fz2Node, m2Node];
     }
@@ -121,13 +127,27 @@ export class BeamElementTrapezoidalEdgeLoad extends BeamElementLoad {
         const deltaFz = fz1 - fz0;
         const xi = xl; // normalized position along the element
 
-        const polyUniform = (Math.pow(xi, 4) / 24 - Math.pow(xi, 3) / 12 + Math.pow(xi, 2) / 24);
-        const polyLinear = Math.pow(xi, 5) / 120 - Math.pow(xi, 3) / 40 + Math.pow(xi, 2) / 60;
-
+        // Held at both ends, with shear deformation (exact Timoshenko solutions, derived with sympy):
+        // the uniform part fz0 and the part rising linearly to deltaFz at the end
+        const phi = elem.computeShearFactor();
         const EI = elem.getMaterial().e * elem.getCS().iy;
-        const w = ((l ** 4) / EI) * (fz0 * polyUniform + deltaFz * polyLinear);
+        const x = xi * l;
+        const uniform = (fz0 * l ** 4 * xi * (1 - xi) * (phi + xi - xi * xi)) / (24 * EI);
+        const linear =
+          (deltaFz * x * (x - l) *
+            (-10 * phi * phi * l ** 3 - 10 * phi * phi * l * l * x - 9 * phi * l ** 3 - 24 * phi * l * l * x +
+              6 * phi * l * x * x + 6 * phi * x ** 3 - 12 * l * l * x + 6 * l * x * x + 6 * x ** 3)) /
+          (720 * EI * l * (1 + phi));
+        const w = uniform + linear;
 
-        return { u: 0.0, w };
+        // The bar held at both ends under its axial load: EA u'' = -fx(x), u(0) = u(l) = 0, for the
+        // uniform part fx0 and the part rising linearly to fx1 - fx0 at the end
+        const fx0 = intensities.start.fx;
+        const deltaFx = intensities.end.fx - fx0;
+        const EA = elem.getMaterial().e * elem.getCS().a;
+        const u = ((fx0 * x * (l - x)) / 2 + (deltaFx * x * (l * l - x * x)) / (6 * l)) / EA;
+
+        return { u, w };
     }
 
     computeBeamNContrib(x: number): number {
