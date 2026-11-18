@@ -1,28 +1,45 @@
 {
-  "name": "ts-fem",
-  "version": "0.2.3",
-  "author": {
-    "name": "Jan Vorisek",
-    "email": "jan@vorisek.me",
-    "url": "https://github.com/janvorisek"
+  "name": "@edubeam/fem",
+  "version": "0.3.0",
+  "description": "A finite element solver for plane frames and trusses, in TypeScript: Timoshenko beams, nodal and member loads, temperature, settlements, linear statics and natural frequencies.",
+  "keywords": [
+    "finite-element",
+    "fem",
+    "structural-analysis",
+    "beam",
+    "frame",
+    "truss",
+    "timoshenko",
+    "statics",
+    "typescript"
+  ],
+  "homepage": "https://www.edubeam.app/solver",
+  "bugs": {
+    "url": "https://github.com/EduBeamApp/fem/issues"
   },
-  "license": "GPL-3.0",
   "repository": {
     "type": "git",
-    "url": "https://github.com/janvorisek/ts-fem"
+    "url": "git+https://github.com/EduBeamApp/fem.git"
   },
+  "license": "GPL-3.0",
   "type": "module",
   "main": "./dist/ts-fem.umd.cjs",
   "module": "./dist/ts-fem.js",
   "types": "./dist/index.d.ts",
-  "files": [
-    "dist"
-  ],
   "exports": {
     ".": {
+      "types": "./dist/index.d.ts",
       "import": "./dist/ts-fem.js",
       "require": "./dist/ts-fem.umd.cjs"
-    }
+    },
+    "./package.json": "./package.json"
+  },
+  "files": [
+    "dist",
+    "CHANGELOG.md"
+  ],
+  "engines": {
+    "node": ">=18"
   },
   "scripts": {
     "lint": "eslint --ext .js,.ts --ignore-path .eslintignore src",
@@ -30,7 +47,17 @@
     "build": "vite build",
     "prepare": "vite build",
     "preview": "vite preview",
-    "test": "vitest"
+    "test": "vitest",
+    "test:run": "vitest run",
+    "prepublishOnly": "vitest run && vite build"
+  },
+  "publishConfig": {
+    "access": "public"
+  },
+  "author": {
+    "name": "Jan Vorisek",
+    "email": "jan@vorisek.me",
+    "url": "https://github.com/janvorisek"
   },
   "dependencies": {
     "mathjs": "^12.3.0"

@@ -1,39 +1,65 @@
-# fem.ts
+# @edubeam/fem
 
-Typescript finite element module. 
+A finite element solver for plane frames and trusses, written in TypeScript. It runs in the browser
+and in Node, and it is the solver behind [EduBeam](https://www.edubeam.app): every diagram,
+reaction and deflection the app shows comes from it.
 
-## Available analyses
-* Linear elastic with multiple load cases
+Documentation: <https://www.edubeam.app/solver>
 
-## Supported elements
+Formerly published from GitHub as `ts-fem`; import from `@edubeam/fem` instead.
 
-## Boundary conditions
-* Concentrated nodal load
-* Uniform distributed force load 
-* Prescribed displacements   
+## Install
 
-## Getting started
-```ts
-import {Beam2D, Material, CrossSection, Domain, DofID, Node, Element, Solver, BeamElementUniformEdgeLoad} from '../src/fem';
-// Setup model of cantilever beam (in xz plane)
-let solver = new Solver();
-let domain = solver.domain;
-domain.createNode(1, [0,0,0], [DofID.Dx, DofID.Dz,DofID.Ry]); // clamped node
-domain.createNode(5, [3,0,0] ); // free node
-domain.createBeam2D(10, [1,5], 1, 1); 
-domain.createCrossSection(1, { a: 0.06, iy: 0.00045, iz: 0.00025, dyz: 0.0001, h: 0.3, k: 0.8333, j: 0.0007 });
-domain.createMaterial(1, { e: 3.e7, g: 1.e7, alpha: 1.2e-5, d: 2.5e3 });
-solver.loadCases[0].createBeamElementUniformEdgeLoad(10, [1,1], false);
-solver.solve();
-// print some results
-console.log("Node 1 displacements: ", domain.nodes.get(1).getUnknowns(solver.loadCases[0], [DofID.Dx, DofID.Dz, DofID.Ry]));
-console.log("Node 5 displacements: ", domain.nodes.get(5).getUnknowns(solver.loadCases[0], [DofID.Dx, DofID.Dz, DofID.Ry]));
-console.log("Element 1 end forces: ", (<Beam2D>domain.elements.get(10)).computeEndForces(solver.loadCases[0]));
-console.log("Reactions in node 1:", domain.getNode(1).getReactions(solver.loadCases[0]));
+```bash
+npm install @edubeam/fem
 ```
 
+## A simply supported beam
 
-## Author
-Bořek Patzák (borek.patzak@gmail.com)
- 
+```ts
+import { DofID, LinearStaticSolver, type Beam2D } from '@edubeam/fem'
 
+const solver = new LinearStaticSolver()
+const { domain } = solver
+
+// SI units throughout: m, N, Pa. Steel and an IPE 200.
+domain.createMaterial(1, { e: 210e9, g: 80.77e9, alpha: 1.2e-5, d: 7850 })
+domain.createCrossSection(1, { a: 28.5e-4, iy: 1943e-8, iz: 142e-8, dyz: 0, h: 0.2, k: 5 / 6, j: 6.98e-8 })
+
+// Nodes at [x, y, z] in metres, with the DOFs they hold fixed
+domain.createNode('a', [0, 0, 0], [DofID.Dx, DofID.Dz]) // pin
+domain.createNode('b', [6, 0, 0], [DofID.Dz]) // roller
+domain.createBeam2D('1', ['a', 'b'], 1, 1)
+
+// 12 kN/m along local z, which points down on a beam drawn left to right
+solver.loadCases[0].createBeamElementUniformEdgeLoad('1', [0, 12_000], true)
+solver.solve()
+
+const lc = solver.loadCases[0]
+const beam = domain.elements.get('1') as Beam2D
+beam.computeBendingMomentAt(lc, 3) // 54000 N·m, qL²/8
+beam.computeShearForceAt(lc, 0) // 36000 N, qL/2
+```
+
+The model lies in the x–z plane with z pointing down; sagging moments are positive; positions
+along a member are in metres from its first node.
+
+## What's in it
+
+- **Analyses:** `LinearStaticSolver` (load cases) and `EigenValueDynamicSolver` (natural
+  frequencies and mode shapes).
+- **Elements:** `Beam2D`, a two-node Timoshenko beam with optional end hinges.
+- **Loads:** nodal forces and moments, point and line loads along members (uniform and
+  trapezoidal), temperature, prescribed displacements.
+- **Results:** N, V and M anywhere along a member, deflections, end forces, nodal displacements
+  and reactions.
+
+The full list is at <https://www.edubeam.app/solver/reference>.
+
+## Authors
+
+Bořek Patzák (borek.patzak@gmail.com), with Jan Voříšek and contributors.
+
+## License
+
+GPL-3.0

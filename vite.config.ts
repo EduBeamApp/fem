@@ -10,6 +10,11 @@ export default defineConfig({
       name: "ts-fem",
       fileName: "ts-fem",
     },
+    rollupOptions: {
+      // mathjs is a dependency, installed beside the package: bundling it as well would ship it twice
+      external: ["mathjs"],
+      output: { globals: { mathjs: "math" } },
+    },
   },
   // The tests sit beside the sources; their types are no part of the package
   plugins: [dts({ exclude: ["**/*.test.ts"] })],
