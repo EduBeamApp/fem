@@ -24,5 +24,9 @@ jobs:
       - run: npm run test:run
       - run: npm run build
 
+      # The package as consumers resolve it: its metadata, and its types under every module setting
+      - run: npm run publint
+      - run: npm run check:types
+
       # Lists what would ship, so a stray file in the package shows up in the log.
       - run: npm pack --dry-run

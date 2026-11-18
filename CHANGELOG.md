@@ -9,7 +9,10 @@ imports from `'ts-fem'` to `'@edubeam/fem'`; the API is otherwise the same.
 - Exact Timoshenko fixed-end forces and deflected shapes, checked against a verification suite of
   closed-form cases.
 - `dist` is built on install and on publish instead of being committed.
-- Type declarations are listed first in `exports`, so TypeScript finds them under every resolution mode.
+- Type declarations are listed first in `exports` and import each other with explicit `.js` paths,
+  so TypeScript finds them under `moduleResolution: node16`/`nodenext` as well as in bundlers.
+- mathjs is no longer bundled into `dist` (384 kB down to 49 kB); it is installed as a dependency.
+- `sideEffects: false`, so bundlers can drop what a project doesn't use.
 
 ## 0.2.3 and earlier
 
