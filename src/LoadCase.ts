@@ -54,8 +54,8 @@ export class LoadCase {
   }
 
   //class factory
-  createNodalLoad(node: LabelType, values: EnumDictionary<DofID, number> = {}) {
-    const ans = new NodalLoad(node, this.domain, values);
+  createNodalLoad(node: LabelType, values: EnumDictionary<DofID, number> = {}, lcs = false) {
+    const ans = new NodalLoad(node, this.domain, values, lcs);
     this.nodalLoadList.push(ans);
     return ans;
   }
