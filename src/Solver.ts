@@ -6,11 +6,12 @@ import { DofID, Domain, LabelType, LoadCase } from ".";
  */
 export abstract class Solver {
   domain: Domain;
-  neq: number; // number of unknowns
-  pneq: number; // number of prescribed unknowns
-  k: math.Matrix;
-  m: math.Matrix;
-  f: math.MathCollection | number[] | number[][];
+  // Set by generateCodeNumbers and assemble; undefined before them, as they have always been.
+  neq!: number; // number of unknowns
+  pneq!: number; // number of prescribed unknowns
+  k!: math.Matrix;
+  m!: math.Matrix;
+  f!: math.MathCollection | number[] | number[][];
   loadCases = new Array<LoadCase>();
   codeNumberGenerated: boolean = false;
 
@@ -22,11 +23,11 @@ export abstract class Solver {
   nodeCodeNumbers = new Map<LabelType, { [code: number]: number }>();
 
   getNodeLocationArray(num: LabelType, dofs: Array<DofID>) {
-    let ans = [];
+    let ans: number[] = [];
     //console.log("Node:", num, "Locatioan Array dofs:", dofs);
     for (const i of dofs) {
       //console.log(num, i, this.nodeCodeNumbers.get(num)[i]);
-      ans = ans.concat(this.nodeCodeNumbers.get(num)[i]);
+      ans = ans.concat(this.nodeCodeNumbers.get(num)![i]);
     }
     return ans;
   }
@@ -40,18 +41,19 @@ export abstract class Solver {
 
   generateCodeNumbers() {
     const nodalDofs = new Map<LabelType, Set<DofID>>();
-    for (const [key, node] of this.domain.nodes) {
+    for (const key of this.domain.nodes.keys()) {
       this.nodeCodeNumbers.set(key, {});
       nodalDofs.set(key, new Set<DofID>());
     }
     // compile list of DOFs needed in nodes from element requirements
-    for (const [ie, elem] of this.domain.elements) {
+    for (const elem of this.domain.elements.values()) {
       for (const en of elem.nodes) {
         const dofs = elem.getNodeDofs(en);
         for (const d of dofs) {
           if (nodalDofs.has(en)) {
-            nodalDofs.get(en).add(d);
+            nodalDofs.get(en)!.add(d);
           } else {
+            // oxlint-disable-next-line no-console -- printed before the error, as it always has been
             console.log(en, en in nodalDofs, nodalDofs.get(en));
             throw new RangeError("Node label " + en + " does not exists");
           }
@@ -63,7 +65,7 @@ export abstract class Solver {
     this.neq = 0;
     this.pneq = 0;
     for (const [num, node] of this.domain.nodes) {
-      for (const d of nodalDofs.get(num)) {
+      for (const d of nodalDofs.get(num)!) {
         if (node.bcs.has(d)) {
           this.pneq++;
         } else {
@@ -76,11 +78,11 @@ export abstract class Solver {
     let eq: number = 0;
     let peq: number = this.neq;
     for (const [num, node] of this.domain.nodes) {
-      for (const d of nodalDofs.get(num)) {
+      for (const d of nodalDofs.get(num)!) {
         if (node.bcs.has(d)) {
-          this.nodeCodeNumbers.get(num)[d] = peq++;
+          this.nodeCodeNumbers.get(num)![d] = peq++;
         } else {
-          this.nodeCodeNumbers.get(num)[d] = eq++;
+          this.nodeCodeNumbers.get(num)![d] = eq++;
         }
       }
     }

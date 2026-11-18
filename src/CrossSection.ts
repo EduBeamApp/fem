@@ -46,14 +46,15 @@ export class CrossSection {
     this.label = label.toString();
 
     // Optional parameters
+    // A parameter left out stays undefined, as it always has; `!` keeps the declared number type.
     params = { ...CrossSectionParametersDefaults, ...params };
-    this.a = params.a;
-    this.iy = params.iy;
-    this.iz = params.iz;
-    this.dyz = params.dyz;
-    this.h = params.h;
-    this.k = params.k;
-    this.j = params.j;
+    this.a = params.a!;
+    this.iy = params.iy!;
+    this.iz = params.iz!;
+    this.dyz = params.dyz!;
+    this.h = params.h!;
+    this.k = params.k!;
+    this.j = params.j!;
   }
 
   /**

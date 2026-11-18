@@ -1,0 +1,47 @@
+{
+  "$schema": "./node_modules/oxlint/configuration_schema.json",
+  "plugins": ["eslint", "typescript", "unicorn", "oxc", "import", "vitest"],
+  "categories": {
+    "correctness": "error",
+    "suspicious": "error"
+  },
+  "env": { "browser": true, "node": true, "es2022": true },
+  "ignorePatterns": ["dist/**", "coverage/**", "node_modules/**"],
+  "rules": {
+    // A library reports through return values and exceptions; the few existing logs are marked where they are.
+    "no-console": "error",
+    "typescript/no-explicit-any": "error",
+    // Overridable methods name parameters their subclasses use; locals must still be used.
+    "no-unused-vars": ["error", { "args": "none", "caughtErrors": "none" }],
+    // `_id` and mathjs's `_data` are names, not a convention this code follows.
+    "no-underscore-dangle": "off"
+  },
+  "overrides": [
+    {
+      // The tests stay as they were written: helpers inside tests, titles from variables, logs while debugging.
+      "files": ["**/*.test.ts"],
+      "rules": {
+        "no-console": "off",
+        "no-unused-vars": "off",
+        "unicorn/consistent-function-scoping": "off",
+        "unicorn/no-array-sort": "off",
+        "vitest/valid-title": "off",
+        "vitest/no-conditional-expect": "off"
+      }
+    },
+    {
+      // Untested so far (0 % coverage); it prints its progress and reuses loop names. Tidy it once it has tests.
+      "files": ["src/EigenValueDynamicSolver.ts"],
+      "rules": { "no-console": "off", "no-shadow": "off" }
+    },
+    {
+      // The base class's untyped placeholders are public API: typing them is an API change for a later release.
+      "files": ["src/Element.ts"],
+      "rules": { "typescript/no-explicit-any": "off" }
+    },
+    {
+      "files": ["scripts/**", "*.config.ts"],
+      "rules": { "no-console": "off" }
+    }
+  ]
+}

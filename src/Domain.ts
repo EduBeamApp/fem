@@ -24,8 +24,9 @@ export class Domain {
   }
   getNode(id: LabelType): Node {
     const _id = id.toString();
-    if (this.nodes.has(_id)) {
-      return this.nodes.get(_id);
+    const found = this.nodes.get(_id);
+    if (found) {
+      return found;
     } else {
       throw new RangeError("Node label " + id + " does not exists");
     }
@@ -33,8 +34,9 @@ export class Domain {
 
   getElement(id: LabelType): Element {
     const _id = id.toString();
-    if (this.elements.has(_id)) {
-      return this.elements.get(_id);
+    const found = this.elements.get(_id);
+    if (found) {
+      return found;
     } else {
       throw new RangeError("Element label " + id + " does not exists");
     }
@@ -42,16 +44,18 @@ export class Domain {
 
   getMaterial(id: LabelType): Material {
     const _id = id.toString();
-    if (this.materials.has(_id)) {
-      return this.materials.get(_id);
+    const found = this.materials.get(_id);
+    if (found) {
+      return found;
     } else {
       throw new RangeError("Material label " + id + " does not exists");
     }
   }
   getCS(id: LabelType): CrossSection {
     const _id = id.toString();
-    if (this.crossSections.has(_id)) {
-      return this.crossSections.get(_id);
+    const found = this.crossSections.get(_id);
+    if (found) {
+      return found;
     } else {
       throw new RangeError("CrossSection label " + id + " does not exists");
     }

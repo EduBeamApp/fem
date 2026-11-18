@@ -21,7 +21,7 @@ export class Node {
    * where e' is base vector of local coordinate system and e is
    * base vector of global c.s.
    */
-  lcs: number[][];
+  lcs: number[][] | undefined;
   /**
    * Node constructor
    * @param label number
@@ -91,7 +91,8 @@ export class Node {
     if (this.lcs == undefined) {
       return math.identity(size);
     } else {
-      const ans = math.zeros([size, size]);
+      // An array size gives an array back, indexable as one.
+      const ans = math.zeros([size, size]) as number[][];
 
       for (let i = 0; i < size; i++) {
         const id = dofs[i];
@@ -155,7 +156,7 @@ export class Node {
   /**
    * Returns true if receiver has local c.s.
    */
-  hasLcs() {
+  hasLcs(): this is this & { lcs: number[][] } {
     return this.lcs != undefined;
   }
 
@@ -166,7 +167,7 @@ export class Node {
       const R: number[] = [];
       for (let i = 0; i < sdofs.length; i++) {
         if (this.bcs.has(sdofs[i])) {
-          R.push(<number>(<any>math.subset(lc.R, math.index([cn[i] - this.domain.solver.neq])))); // math.js type maze
+          R.push(math.subset(lc.R, math.index([cn[i] - this.domain.solver.neq])) as unknown as number); // math.js type maze
         } else {
           R.push(0.0);
         }

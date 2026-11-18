@@ -22,7 +22,7 @@ export class PrescribedDisplacement {
     // generate prescribed displacement vector
     for (const dof of dofs) {
       if (dof in this.prescribedValues) {
-        answer.push(this.prescribedValues[dof]);
+        answer.push(this.prescribedValues[dof as DofID]!);
       } else {
         answer.push(0.0);
       }

@@ -10,10 +10,10 @@ export class LinearStaticSolver extends Solver {
     this.k = math.zeros(this.neq + this.pneq, this.neq + this.pneq) as math.Matrix;
 
     // assemble stifness matrix
-    for (const [num, el] of this.domain.elements) {
+    for (const el of this.domain.elements.values()) {
       const estiff = el.computeStiffness();
       const loc = el.getLocationArray() as [];
-      const ndofs = math.size(loc)[0];
+      const ndofs = (math.size(loc) as number[])[0];
 
       for (let r = 0; r < ndofs; r++) {
         const rc = loc[r];
@@ -109,6 +109,7 @@ export class LinearStaticSolver extends Solver {
 
     const endtime = new Date();
     const timediff = endtime.getTime() - startime.getTime();
+    // oxlint-disable-next-line no-console -- the solver reports its timing, as it always has
     console.log("Solution took ", Math.round(timediff * 100) / 100, " [ms]");
   }
 }

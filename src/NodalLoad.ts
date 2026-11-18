@@ -33,7 +33,7 @@ export class NodalLoad extends Load {
     const ans = Array<number>();
     for (const idof of dofs) {
       if (idof in this.values) {
-        ans.push(this.values[idof]);
+        ans.push(this.values[idof as DofID]!);
       } else {
         ans.push(0.0);
       }

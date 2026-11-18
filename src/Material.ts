@@ -35,11 +35,12 @@ export class Material {
     this.label = label.toString();
 
     // Optional parameters
+    // A parameter left out stays undefined, as it always has; `!` keeps the declared number type.
     params = { ...MaterialParametersDefaults, ...params };
-    this.e = params.e;
-    this.g = params.g;
-    this.alpha = params.alpha;
-    this.d = params.d;
+    this.e = params.e!;
+    this.g = params.g!;
+    this.alpha = params.alpha!;
+    this.d = params.d!;
   }
 
   /**

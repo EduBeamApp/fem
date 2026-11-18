@@ -13,6 +13,8 @@ imports from `'ts-fem'` to `'@edubeam/fem'`; the API is otherwise the same.
   so TypeScript finds them under `moduleResolution: node16`/`nodenext` as well as in bundlers.
 - mathjs is no longer bundled into `dist` (384 kB down to 49 kB); it is installed as a dependency.
 - `sideEffects: false`, so bundlers can drop what a project doesn't use.
+- Typed more precisely, with no change at run time: `Node.lcs` is `number[][] | undefined`, as it always was in
+  practice, and `Node.hasLcs()` narrows it, so `if (node.hasLcs()) node.lcs[0]` still compiles.
 
 ## 0.2.3 and earlier
 

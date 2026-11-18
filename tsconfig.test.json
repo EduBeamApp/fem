@@ -1,0 +1,10 @@
+{
+  // The tests, typechecked as strictly as the library except for unused locals: a few tests compute
+  // a value they don't assert, and the tests stay exactly as they were written.
+  "extends": "./tsconfig.json",
+  "compilerOptions": {
+    "noUnusedLocals": false
+  },
+  "include": ["src", "types"],
+  "exclude": []
+}

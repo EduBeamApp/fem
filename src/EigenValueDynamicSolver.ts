@@ -2,7 +2,7 @@ import * as math from "mathjs";
 
 import * as luqr from "luqr";
 
-import { Domain, LoadCase, DofID, Solver } from ".";
+import { Solver } from ".";
 
 /**
  * Class representing eigen value solver for the structural dynamic problems
@@ -10,10 +10,6 @@ import { Domain, LoadCase, DofID, Solver } from ".";
 export class EigenValueDynamicSolver extends Solver {
   n = 10;
   tol = 1e-12;
-
-  constructor() {
-    super();
-  }
 
   assemble() {
     this.k = math.zeros(this.neq + this.pneq, this.neq + this.pneq) as math.Matrix;
@@ -24,11 +20,11 @@ export class EigenValueDynamicSolver extends Solver {
     this.loadCases[0].eigenNumbers = [];
 
     // assemble stifness matrix
-    for (const [num, el] of this.domain.elements) {
+    for (const el of this.domain.elements.values()) {
       const estiff = el.computeStiffness();
       const emass = el.computeMassMatrix();
       const loc = el.getLocationArray() as [];
-      const ndofs = math.size(loc)[0];
+      const ndofs = (math.size(loc) as number[])[0];
 
       for (let r = 0; r < ndofs; r++) {
         const rc = loc[r];
@@ -74,7 +70,8 @@ export class EigenValueDynamicSolver extends Solver {
       let x = math.ones(this.neq) as math.Matrix;
 
       if (i > 0) {
-        const max = evs[i - 1]._data.reduce(
+        // mathjs keeps a dense matrix's values in `_data`, which its types don't show.
+        const max = (evs[i - 1] as unknown as { _data: number[] })._data.reduce<[number, number]>(
           (a, b, i) => (Math.abs(a[0]) < Math.abs(b) ? [b, i] : a),
           [Number.MIN_VALUE, -1]
         );
@@ -154,8 +151,8 @@ export class EigenValueDynamicSolver extends Solver {
 
     const indices = Array.from(this.loadCases[0].eigenNumbers.keys());
     indices.sort((a, b) => this.loadCases[0].eigenNumbers[a] - this.loadCases[0].eigenNumbers[b]);
-    ((this.loadCases[0].eigenNumbers = indices.map((i) => this.loadCases[0].eigenNumbers[i])),
-      (this.loadCases[0].eigenVectors = indices.map((i) => this.loadCases[0].eigenVectors[i])));
+    this.loadCases[0].eigenNumbers = indices.map((i) => this.loadCases[0].eigenNumbers[i]);
+    this.loadCases[0].eigenVectors = indices.map((i) => this.loadCases[0].eigenVectors[i]);
 
     for (const i of this.loadCases[0].eigenNumbers) {
       console.log(`omega2=${i}, f=${Math.sqrt(i) / (2 * Math.PI)}`);
@@ -168,8 +165,10 @@ export class EigenValueDynamicSolver extends Solver {
 
     // number of negative elements in d matrix implies number of eigen numbers between 0 and max eigen numbers
 
+    // Read only when the decomposition succeeded: otherwise the method returns `this.n` below.
+    let nneg = 0;
     if (ldl) {
-      var nneg = ldl.d.filter(function (e) {
+      nneg = ldl.d.filter(function (e) {
         return e < 1e-6;
       }).length;
 

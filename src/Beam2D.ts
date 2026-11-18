@@ -1,4 +1,5 @@
 import * as math from "mathjs";
+import { condensation } from "./condensation";
 import { Domain } from "./Domain";
 import { LoadCase } from "./LoadCase";
 import { DofID, LabelType } from ".";
@@ -151,15 +152,19 @@ export class Beam2D extends Element {
     // static condensation if some ends are hinges
     // a=nonzero force value, b=zero force(moment) value
     if (this.hasHinges()) {
+      let a: number[];
+      let b: number[];
       if (this.hinges[0] && this.hinges[1]) {
-        var a = [0, 1, 3, 4];
-        var b = [2, 5];
+        a = [0, 1, 3, 4];
+        b = [2, 5];
       } else if (this.hinges[0]) {
-        var a = [0, 1, 3, 4, 5];
-        var b = [2];
+        a = [0, 1, 3, 4, 5];
+        b = [2];
       } else if (this.hinges[1]) {
-        var a = [0, 1, 2, 3, 4];
-        var b = [5];
+        a = [0, 1, 2, 3, 4];
+        b = [5];
+      } else {
+        throw new Error("hasHinges() said there is a hinge");
       }
       const kaa = answer.subset(math.index(a, a));
       const kab = answer.subset(math.index(a, b));
@@ -222,17 +227,20 @@ export class Beam2D extends Element {
     ]);
     math.multiply(answer, c / (1 + fi) / (1 + fi));
 
-    const cc = Math.min(Math.abs(answer[1][1]), Math.abs(answer[2][2])) / 1000.0;
-    answer[0][0] = cc;
-    answer[0][3] = -cc;
-    answer[3][0] = -cc;
-    answer[3][3] = cc;
+    // KNOWN BUG, kept as it is: `answer` is a mathjs Matrix, which can't be indexed like an array, so
+    // answer[1] is undefined and this throws. The cast only states what the code does today.
+    const raw = answer as unknown as number[][];
+    const cc = Math.min(Math.abs(raw[1][1]), Math.abs(raw[2][2])) / 1000.0;
+    raw[0][0] = cc;
+    raw[0][3] = -cc;
+    raw[3][0] = -cc;
+    raw[3][3] = cc;
 
     // static condensation if some ends are hinges
     // a=nonzero force value, b=zero force(moment) value
     if (this.hasHinges()) {
-      const stiffrec = this.computeLocalStiffnessMtrx(true);
-      const asize: number = math.size(stiffrec.a)[0];
+      const stiffrec = condensation(this.computeLocalStiffnessMtrx(true));
+      const asize: number = (math.size(stiffrec.a) as number[])[0];
       const t = math.zeros(6, asize);
 
       math.subset(t, math.index(stiffrec.a, math.range(0, asize)), math.identity(asize));
@@ -267,7 +275,6 @@ export class Beam2D extends Element {
     // var eiy = mat.e*cs.iy;
     const l = geo.l;
     const l2 = l * l;
-    const l3 = l2 * l;
     //var fi=12.*eiy/(cs.k*mat.g*cs.a*l*l);
     //var fi2= fi*fi;
     /*const M_CT = math.matrix([
@@ -323,8 +330,6 @@ export class Beam2D extends Element {
    * Evaluate element stiffness matrix in global c.s.
    */
   computeStiffness() {
-    const geo = this.computeGeo();
-
     const kl = this.computeLocalStiffnessMtrx();
     const t = this.computeT();
     const k = math.multiply(math.multiply(math.transpose(t), kl.answer), t);
@@ -335,8 +340,6 @@ export class Beam2D extends Element {
    * Evaluate element mass matrix in global c.s.
    */
   computeMassMatrix() {
-    const geo = this.computeGeo();
-
     const ml = this.computeLocalMassMatrix();
     const t = this.computeT();
     const m = math.multiply(math.multiply(math.transpose(t), ml), t);
@@ -364,7 +367,7 @@ export class Beam2D extends Element {
     let rloc = math.multiply(t, math.subset(lc.r, math.index(loc)));
 
     if (this.hasHinges()) {
-      const stiffrec = this.computeLocalStiffnessMtrx(true);
+      const stiffrec = condensation(this.computeLocalStiffnessMtrx(true));
       let bl = math.zeros(6);
       for (const load of lc.getElementLoadsOnElement(this.label)) {
         bl = math.add(bl, load.getLoadVectorForClampedBeam()) as number[];
@@ -409,23 +412,24 @@ export class Beam2D extends Element {
     }
 
     if (this.hasHinges()) {
+      const c = condensation(stiffrec);
       // fe[ix_(a)] += bl[ix_(a)] - dot(dot(kab,linalg.inv(kbb)),bl[ix_(b)])
 
-      const h1 = math.multiply(stiffrec.kab, math.inv(stiffrec.kbb));
+      const h1 = math.multiply(c.kab, math.inv(c.kbb));
 
-      if (stiffrec.b.length == 1) {
-        const blv = bl.get(stiffrec.b);
-        for (let i = 0; i < stiffrec.a.length; i++) {
-          fe.set([stiffrec.a[i]], fe.get([stiffrec.a[i]]) + bl.get([stiffrec.a[i]]) - h1.get([i, 0]) * blv);
+      if (c.b.length == 1) {
+        const blv = bl.get(c.b);
+        for (let i = 0; i < c.a.length; i++) {
+          fe.set([c.a[i]], fe.get([c.a[i]]) + bl.get([c.a[i]]) - h1.get([i, 0]) * blv);
         }
       } else {
         const help = math.subtract(
-          math.subset(bl, math.index(stiffrec.a)),
-          math.multiply(h1, math.subset(bl, math.index(stiffrec.b)))
+          math.subset(bl, math.index(c.a)),
+          math.multiply(h1, math.subset(bl, math.index(c.b)))
         );
 
-        fe = math.add(fe, math.subset(fe, math.index(stiffrec.a), help));
-        //fe = math.subset(fe, math.index(stiffrec.a), fe);
+        fe = math.add(fe, math.subset(fe, math.index(c.a), help));
+        //fe = math.subset(fe, math.index(c.a), fe);
       }
     } else {
       fe = math.add(fe, bl) as math.Matrix;
@@ -491,7 +495,7 @@ export class Beam2D extends Element {
     let rloc = math.multiply(t, math.subset(lc.eigenVectors[ntheig], math.index(loc)));
 
     if (this.hasHinges()) {
-      const stiffrec = this.computeLocalStiffnessMtrx(true);
+      const stiffrec = condensation(this.computeLocalStiffnessMtrx(true));
       const bl = math.zeros(6);
       if (this.hasHinges()) {
         // re[ix_(b)] = dot(linalg.inv(kbb), -bl[ix_(b)] - dot(kab.transpose(), re[ix_(a)] ) )

@@ -1,4 +1,5 @@
 import * as math from "mathjs";
+import { condensation } from "./condensation";
 import { Beam2D } from "./Beam2D";
 import { BeamElementLoad } from "./BeamElementLoad";
 import { Domain } from "./Domain";
@@ -99,7 +100,7 @@ export class BeamElementTrapezoidalEdgeLoad extends BeamElementLoad {
     const t = elem.computeT();
     const f = this.getLoadVectorForClampedBeam();
     if (elem.hasHinges()) {
-      const stiffrec = elem.computeLocalStiffnessMtrx(true);
+      const stiffrec = condensation(elem.computeLocalStiffnessMtrx(true));
       let ans = [0, 0, 0, 0, 0, 0];
 
       const h1 = math.multiply(stiffrec.kab, math.inv(stiffrec.kbb));

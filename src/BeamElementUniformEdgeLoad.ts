@@ -1,4 +1,5 @@
 import * as math from "mathjs";
+import { condensation } from "./condensation";
 import { Beam2D } from "./Beam2D";
 import { BeamElementLoad } from "./BeamElementLoad";
 import { Domain } from "./Domain";
@@ -73,7 +74,7 @@ export class BeamElementUniformEdgeLoad extends BeamElementLoad {
     const t = elem.computeT();
     const f = this.getLoadVectorForClampedBeam();
     if (elem.hasHinges()) {
-      const stiffrec = elem.computeLocalStiffnessMtrx(true);
+      const stiffrec = condensation(elem.computeLocalStiffnessMtrx(true));
       let ans = [0, 0, 0, 0, 0, 0];
       // following is result of static condensation
       // ret[ix_(a)] = f[ix_(a)] - dot(dot(kab,linalg.inv(kbb)),f[ix_(b)])
