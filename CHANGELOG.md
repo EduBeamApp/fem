@@ -1,6 +1,7 @@
 # Changelog
 
 ## 0.3.0 (2026-11-18)
+
 The first release on npm, and under a new name: `ts-fem` is now **`@edubeam/fem`**. Change your
 imports from `'ts-fem'` to `'@edubeam/fem'`; the API is otherwise the same.
 
