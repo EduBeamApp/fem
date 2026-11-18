@@ -11,5 +11,6 @@ export default defineConfig({
       fileName: "ts-fem",
     },
   },
-  plugins: [dts()],
+  // The tests sit beside the sources; their types are no part of the package
+  plugins: [dts({ exclude: ["**/*.test.ts"] })],
 });

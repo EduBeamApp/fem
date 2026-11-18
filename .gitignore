@@ -1,1 +1,3 @@
 node_modules
+# Built by `npm run build`, and by npm itself when the package is installed from git (`prepare`)
+dist
