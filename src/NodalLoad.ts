@@ -1,3 +1,4 @@
+import * as math from "mathjs";
 import { Domain } from "./Domain";
 import { Load } from "./Load";
 import { EnumDictionary, DofID, LabelType } from ".";
@@ -16,6 +17,13 @@ export class NodalLoad extends Load {
     this.target = node.toString();
     this.values = values;
   }
+  /**
+   * The load vector, in the axes the node's unknowns are in.
+   *
+   * The values are given in the global c.s. A node with a local c.s. (a rotated support) has its
+   * unknowns in that one, so the load is turned into it, f_n = T^T f_g - left as it is, a horizontal
+   * force would act along the rotated support and be taken by it whole.
+   */
   getLoadVector(): number[] {
     const dofs = this.domain.solver.getNodeDofIDs(this.target);
     const ans = Array<number>();
@@ -26,7 +34,12 @@ export class NodalLoad extends Load {
         ans.push(0.0);
       }
     }
-    return ans;
+
+    const node = this.domain.getNode(this.target);
+    if (!node.hasLcs()) return ans;
+
+    const t = node.getTransformationMtrx(dofs) as math.Matrix;
+    return (math.multiply(math.transpose(t), ans) as math.Matrix).toArray() as number[];
   }
   getLocationArray(): number[] {
     return this.domain.solver.getNodeLocationArray(this.target, this.domain.solver.getNodeDofIDs(this.target));
