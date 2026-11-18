@@ -97,29 +97,29 @@ export class Node {
         const id = dofs[i];
         // test for vector quantities
         switch (id) {
-        case DofID.Dx:
-        case DofID.Dy:
-        case DofID.Dz:
-          for (let j = 0; j < size; j++) {
-            const id2 = dofs[j];
-            if (id2 == DofID.Dx || id2 == DofID.Dy || id2 == DofID.Dz) {
-              ans[i][j] = this.lcs[id2][id];
+          case DofID.Dx:
+          case DofID.Dy:
+          case DofID.Dz:
+            for (let j = 0; j < size; j++) {
+              const id2 = dofs[j];
+              if (id2 == DofID.Dx || id2 == DofID.Dy || id2 == DofID.Dz) {
+                ans[i][j] = this.lcs[id2][id];
+              }
             }
-          }
-          break;
+            break;
 
-        case DofID.Rx:
-        case DofID.Ry:
-        case DofID.Rz:
-          for (let j = 0; j < size; j++) {
-            const id2 = dofs[j];
-            if (id2 == DofID.Rx || id2 == DofID.Ry || id2 == DofID.Rz) {
-              ans[i][j] = this.lcs[id2 - DofID.Rx][id - DofID.Rx];
+          case DofID.Rx:
+          case DofID.Ry:
+          case DofID.Rz:
+            for (let j = 0; j < size; j++) {
+              const id2 = dofs[j];
+              if (id2 == DofID.Rx || id2 == DofID.Ry || id2 == DofID.Rz) {
+                ans[i][j] = this.lcs[id2 - DofID.Rx][id - DofID.Rx];
+              }
             }
-          }
-          break;
-        default:
-          throw new TypeError("Unknown DofID: " + id);
+            break;
+          default:
+            throw new TypeError("Unknown DofID: " + id);
         } // end switch
       } // end loop over dofs
       return math.matrix(ans);

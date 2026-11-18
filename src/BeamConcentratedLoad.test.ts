@@ -109,7 +109,8 @@ test("Concentrated moment My uses XZ beam bending conventions", () => {
   expect(load.computeBeamMContrib(2.0)).toBeCloseTo(-100000);
 
   const EI = solver.domain.getElement("1").getMaterial().e * solver.domain.getElement("1").getCS().iy;
-  const expectedDeflectionAtMidspan = (-28125 * Math.pow(2, 3) / 6 - 18750 * Math.pow(2, 2) / 2 + 100000 * Math.pow(1, 2) / 2) / EI;
+  const expectedDeflectionAtMidspan =
+    ((-28125 * Math.pow(2, 3)) / 6 - (18750 * Math.pow(2, 2)) / 2 + (100000 * Math.pow(1, 2)) / 2) / EI;
 
   expect(load.computeBeamDeflectionContrib(0.5).u).toBeCloseTo(0);
   expect(load.computeBeamDeflectionContrib(0.5).w).toBeCloseTo(expectedDeflectionAtMidspan);
@@ -161,8 +162,10 @@ test("Clamped-clamped 10m beam matches between 2-element nodal moment and 1-elem
 
   const splitReactions1 = splitSolver.domain.getNode(1).getReactions(splitSolver.loadCases[0]).values as math.Matrix;
   const splitReactions3 = splitSolver.domain.getNode(3).getReactions(splitSolver.loadCases[0]).values as math.Matrix;
-  const concentratedReactions1 = concentratedSolver.domain.getNode(1).getReactions(concentratedSolver.loadCases[0]).values as math.Matrix;
-  const concentratedReactions2 = concentratedSolver.domain.getNode(2).getReactions(concentratedSolver.loadCases[0]).values as math.Matrix;
+  const concentratedReactions1 = concentratedSolver.domain.getNode(1).getReactions(concentratedSolver.loadCases[0])
+    .values as math.Matrix;
+  const concentratedReactions2 = concentratedSolver.domain.getNode(2).getReactions(concentratedSolver.loadCases[0])
+    .values as math.Matrix;
 
   expect(concentratedReactions1.get([0])).toBeCloseTo(splitReactions1.get([0]));
   expect(concentratedReactions1.get([1])).toBeCloseTo(splitReactions1.get([1]));
@@ -171,17 +174,31 @@ test("Clamped-clamped 10m beam matches between 2-element nodal moment and 1-elem
   expect(concentratedReactions2.get([1])).toBeCloseTo(splitReactions3.get([1]));
   expect(concentratedReactions2.get([2])).toBeCloseTo(splitReactions3.get([2]));
 
-  const splitMidUnknowns = splitSolver.domain.getNode(2).getUnknowns(splitSolver.loadCases[0], [DofID.Dx, DofID.Dz, DofID.Ry]) as math.Matrix;
-  const concentratedMidDeflection = (concentratedSolver.domain.getElement("1") as Beam2D).computeGlobalDefl(concentratedSolver.loadCases[0], 2);
+  const splitMidUnknowns = splitSolver.domain
+    .getNode(2)
+    .getUnknowns(splitSolver.loadCases[0], [DofID.Dx, DofID.Dz, DofID.Ry]) as math.Matrix;
+  const concentratedMidDeflection = (concentratedSolver.domain.getElement("1") as Beam2D).computeGlobalDefl(
+    concentratedSolver.loadCases[0],
+    2
+  );
 
   expect(concentratedMidDeflection.u[1]).toBeCloseTo(splitMidUnknowns.get([0]), 8);
   expect(concentratedMidDeflection.w[1]).toBeCloseTo(splitMidUnknowns.get([1]), 8);
 
-  const splitLeftMoment = (splitSolver.domain.getElement("1") as Beam2D).computeBendingMomentAt(splitSolver.loadCases[0], 2.5);
-  const splitRightMoment = (splitSolver.domain.getElement("2") as Beam2D).computeBendingMomentAt(splitSolver.loadCases[0], 2.5);
+  const splitLeftMoment = (splitSolver.domain.getElement("1") as Beam2D).computeBendingMomentAt(
+    splitSolver.loadCases[0],
+    2.5
+  );
+  const splitRightMoment = (splitSolver.domain.getElement("2") as Beam2D).computeBendingMomentAt(
+    splitSolver.loadCases[0],
+    2.5
+  );
   const concentratedBeam = concentratedSolver.domain.getElement("1") as Beam2D;
   expect(concentratedBeam.computeBendingMomentAt(concentratedSolver.loadCases[0], 2.5)).toBeCloseTo(splitLeftMoment, 8);
-  expect(concentratedBeam.computeBendingMomentAt(concentratedSolver.loadCases[0], 7.5)).toBeCloseTo(splitRightMoment, 8);
+  expect(concentratedBeam.computeBendingMomentAt(concentratedSolver.loadCases[0], 7.5)).toBeCloseTo(
+    splitRightMoment,
+    8
+  );
 });
 
 test("Clamped beam - concentrated moment load", () => {

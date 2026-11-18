@@ -154,8 +154,8 @@ export class EigenValueDynamicSolver extends Solver {
 
     const indices = Array.from(this.loadCases[0].eigenNumbers.keys());
     indices.sort((a, b) => this.loadCases[0].eigenNumbers[a] - this.loadCases[0].eigenNumbers[b]);
-    (this.loadCases[0].eigenNumbers = indices.map((i) => this.loadCases[0].eigenNumbers[i])),
-      (this.loadCases[0].eigenVectors = indices.map((i) => this.loadCases[0].eigenVectors[i]));
+    ((this.loadCases[0].eigenNumbers = indices.map((i) => this.loadCases[0].eigenNumbers[i])),
+      (this.loadCases[0].eigenVectors = indices.map((i) => this.loadCases[0].eigenVectors[i])));
 
     for (const i of this.loadCases[0].eigenNumbers) {
       console.log(`omega2=${i}, f=${Math.sqrt(i) / (2 * Math.PI)}`);

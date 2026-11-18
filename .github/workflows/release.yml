@@ -4,7 +4,7 @@ name: Release
 on:
   push:
     tags:
-      - 'v*.*.*'
+      - "v*.*.*"
 
 # id-token lets npm verify this workflow by OIDC (trusted publishing), so no NPM_TOKEN secret exists to leak.
 permissions:

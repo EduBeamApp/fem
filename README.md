@@ -17,28 +17,28 @@ npm install @edubeam/fem
 ## A simply supported beam
 
 ```ts
-import { DofID, LinearStaticSolver, type Beam2D } from '@edubeam/fem'
+import { DofID, LinearStaticSolver, type Beam2D } from "@edubeam/fem";
 
-const solver = new LinearStaticSolver()
-const { domain } = solver
+const solver = new LinearStaticSolver();
+const { domain } = solver;
 
 // SI units throughout: m, N, Pa. Steel and an IPE 200.
-domain.createMaterial(1, { e: 210e9, g: 80.77e9, alpha: 1.2e-5, d: 7850 })
-domain.createCrossSection(1, { a: 28.5e-4, iy: 1943e-8, iz: 142e-8, dyz: 0, h: 0.2, k: 5 / 6, j: 6.98e-8 })
+domain.createMaterial(1, { e: 210e9, g: 80.77e9, alpha: 1.2e-5, d: 7850 });
+domain.createCrossSection(1, { a: 28.5e-4, iy: 1943e-8, iz: 142e-8, dyz: 0, h: 0.2, k: 5 / 6, j: 6.98e-8 });
 
 // Nodes at [x, y, z] in metres, with the DOFs they hold fixed
-domain.createNode('a', [0, 0, 0], [DofID.Dx, DofID.Dz]) // pin
-domain.createNode('b', [6, 0, 0], [DofID.Dz]) // roller
-domain.createBeam2D('1', ['a', 'b'], 1, 1)
+domain.createNode("a", [0, 0, 0], [DofID.Dx, DofID.Dz]); // pin
+domain.createNode("b", [6, 0, 0], [DofID.Dz]); // roller
+domain.createBeam2D("1", ["a", "b"], 1, 1);
 
 // 12 kN/m along local z, which points down on a beam drawn left to right
-solver.loadCases[0].createBeamElementUniformEdgeLoad('1', [0, 12_000], true)
-solver.solve()
+solver.loadCases[0].createBeamElementUniformEdgeLoad("1", [0, 12_000], true);
+solver.solve();
 
-const lc = solver.loadCases[0]
-const beam = domain.elements.get('1') as Beam2D
-beam.computeBendingMomentAt(lc, 3) // 54000 N·m, qL²/8
-beam.computeShearForceAt(lc, 0) // 36000 N, qL/2
+const lc = solver.loadCases[0];
+const beam = domain.elements.get("1") as Beam2D;
+beam.computeBendingMomentAt(lc, 3); // 54000 N·m, qL²/8
+beam.computeShearForceAt(lc, 0); // 36000 N, qL/2
 ```
 
 The model lies in the x–z plane with z pointing down; sagging moments are positive; positions

@@ -5,23 +5,21 @@
  * relative specifier: `./Beam2D` becomes `./Beam2D.js`, and the directory import `.` (the sources
  * import shared types from their own index) becomes `./index.js`.
  */
-import { readdirSync, readFileSync, statSync, writeFileSync } from 'node:fs';
-import { join } from 'node:path';
+import { readdirSync, readFileSync, statSync, writeFileSync } from "node:fs";
+import { join } from "node:path";
 
 const files = (dir) =>
   readdirSync(dir).flatMap((name) => {
     const path = join(dir, name);
-    return statSync(path).isDirectory() ? files(path) : path.endsWith('.d.ts') ? [path] : [];
+    return statSync(path).isDirectory() ? files(path) : path.endsWith(".d.ts") ? [path] : [];
   });
 
 const specifier = /(\bfrom\s+|\bimport\s*\(\s*)(['"])(\.{1,2}(?:\/[^'"]+?)?)\2/g;
 let changed = 0;
-for (const file of files('dist')) {
-  const source = readFileSync(file, 'utf8');
+for (const file of files("dist")) {
+  const source = readFileSync(file, "utf8");
   const fixed = source.replace(specifier, (all, lead, quote, path) =>
-    path.endsWith('.js')
-      ? all
-      : `${lead}${quote}${path === '.' || path === '..' ? `${path}/index` : path}.js${quote}`
+    path.endsWith(".js") ? all : `${lead}${quote}${path === "." || path === ".." ? `${path}/index` : path}.js${quote}`
   );
   if (fixed !== source) {
     writeFileSync(file, fixed);
