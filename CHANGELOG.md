@@ -1,5 +1,11 @@
 # Changelog
 
+## 0.3.2 (unreleased)
+
+- The build is named after the package: `dist/fem.js` and `dist/fem.umd.cjs` instead of `ts-fem.*`, and a
+  `<script>` tag defines `window.EduBeamFem` instead of `window["ts-fem"]`. Imports of `@edubeam/fem` are
+  unchanged.
+
 ## 0.3.1 (2026-11-19)
 
 - The solvers no longer write timings or eigenvalue diagnostics to the console; a library should stay

@@ -8,8 +8,9 @@ export default defineConfig({
   build: {
     lib: {
       entry: resolve(__dirname, "src/index.ts"),
-      name: "ts-fem",
-      fileName: "ts-fem",
+      // The global a <script> tag defines: window.EduBeamFem
+      name: "EduBeamFem",
+      fileName: "fem",
     },
     rollupOptions: {
       // mathjs is a dependency, installed beside the package: bundling it as well would ship it twice

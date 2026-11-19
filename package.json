@@ -24,14 +24,14 @@
   "license": "GPL-3.0",
   "type": "module",
   "sideEffects": false,
-  "main": "./dist/ts-fem.umd.cjs",
-  "module": "./dist/ts-fem.js",
+  "main": "./dist/fem.umd.cjs",
+  "module": "./dist/fem.js",
   "types": "./dist/index.d.ts",
   "exports": {
     ".": {
       "types": "./dist/index.d.ts",
-      "import": "./dist/ts-fem.js",
-      "require": "./dist/ts-fem.umd.cjs"
+      "import": "./dist/fem.js",
+      "require": "./dist/fem.umd.cjs"
     },
     "./package.json": "./package.json"
   },
