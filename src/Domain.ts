@@ -28,7 +28,7 @@ export class Domain {
     if (found) {
       return found;
     } else {
-      throw new RangeError("Node label " + id + " does not exists");
+      throw new RangeError(`Node ${id} does not exist`);
     }
   }
 
@@ -38,7 +38,7 @@ export class Domain {
     if (found) {
       return found;
     } else {
-      throw new RangeError("Element label " + id + " does not exists");
+      throw new RangeError(`Element ${id} does not exist`);
     }
   }
 
@@ -48,7 +48,7 @@ export class Domain {
     if (found) {
       return found;
     } else {
-      throw new RangeError("Material label " + id + " does not exists");
+      throw new RangeError(`Material ${id} does not exist`);
     }
   }
   getCS(id: LabelType): CrossSection {
@@ -57,7 +57,7 @@ export class Domain {
     if (found) {
       return found;
     } else {
-      throw new RangeError("CrossSection label " + id + " does not exists");
+      throw new RangeError(`Cross section ${id} does not exist`);
     }
   }
 

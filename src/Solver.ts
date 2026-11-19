@@ -53,9 +53,7 @@ export abstract class Solver {
           if (nodalDofs.has(en)) {
             nodalDofs.get(en)!.add(d);
           } else {
-            // oxlint-disable-next-line no-console -- printed before the error, as it always has been
-            console.log(en, en in nodalDofs, nodalDofs.get(en));
-            throw new RangeError("Node label " + en + " does not exists");
+            throw new RangeError(`Element ${elem.label} refers to node ${en}, which does not exist`);
           }
         }
       }

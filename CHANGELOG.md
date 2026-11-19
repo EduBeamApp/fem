@@ -1,5 +1,14 @@
 # Changelog
 
+## 0.3.1 (unreleased)
+
+- The solvers no longer write timings or eigenvalue diagnostics to the console; a library should stay
+  quiet, and a page that solves many models (or renders them on a server) was flooded with
+  "Solution took … [ms]".
+- An element that refers to a missing node throws a `RangeError` naming both, without first printing to the
+  console, and looking up a missing node, element, material or cross section says "Node 3 does not exist"
+  (it read "Node label 3 does not exists").
+
 ## 0.3.0 (2026-11-18)
 
 The first release on npm, and under a new name: `ts-fem` is now **`@edubeam/fem`**. Change your

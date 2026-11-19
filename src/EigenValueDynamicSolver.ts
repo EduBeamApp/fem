@@ -40,7 +40,6 @@ export class EigenValueDynamicSolver extends Solver {
   solve() {
     this.loadCases[0].solved = false;
 
-    const startime = new Date();
     if (!this.codeNumberGenerated) {
       this.generateCodeNumbers();
     }
@@ -54,15 +53,10 @@ export class EigenValueDynamicSolver extends Solver {
     const kinv = math.inv(kk);
     const mkinv = math.multiply(kinv, mm);
 
-    const endtime1 = new Date();
-    const timediff2 = (endtime1.getTime() - startime.getTime()) / 1000;
-    console.log("Matrix inverse took ", Math.round(timediff2 * 100) / 100, " [sec]");
-
     const evs = [];
     const neigstofind = Math.min(Math.min(this.n * 2, this.n + 8), this.neq);
 
     for (let i = 0; i < neigstofind; i++) {
-      const startime2 = new Date();
       let nits = 0;
       let rho = 0;
       let newrho = 1e32;
@@ -135,10 +129,6 @@ export class EigenValueDynamicSolver extends Solver {
       let fullvec = math.zeros(this.neq + this.pneq);
       fullvec = math.subset(fullvec, math.index(math.range(0, this.neq)), x) as math.Matrix;
       this.loadCases[0].eigenVectors.push(fullvec);
-
-      const endtime3 = new Date();
-      const timediff3 = (endtime3.getTime() - startime2.getTime()) / 1000;
-      console.log("Mode " + (i + 1) + " took ", Math.round(timediff3 * 100) / 100, " [sec]");
     }
 
     /*console.log('kontrola ortogonality');
@@ -154,10 +144,6 @@ export class EigenValueDynamicSolver extends Solver {
     this.loadCases[0].eigenNumbers = indices.map((i) => this.loadCases[0].eigenNumbers[i]);
     this.loadCases[0].eigenVectors = indices.map((i) => this.loadCases[0].eigenVectors[i]);
 
-    for (const i of this.loadCases[0].eigenNumbers) {
-      console.log(`omega2=${i}, f=${Math.sqrt(i) / (2 * Math.PI)}`);
-    }
-
     // Sturm sequence control
     const nwantedeigs = Math.min(this.n, this.neq);
     const maxOmega = this.loadCases[0].eigenNumbers[nwantedeigs - 1];
@@ -171,17 +157,7 @@ export class EigenValueDynamicSolver extends Solver {
       nneg = ldl.d.filter(function (e) {
         return e < 1e-6;
       }).length;
-
-      const missing = nneg - nwantedeigs + 1;
-      //console.log(ldl.d)
-      console.log(
-        "Sturm control sequence: " + nneg + ", found " + nwantedeigs + " (" + neigstofind + "), missing " + missing
-      );
     }
-
-    const endtime = new Date();
-    const timediff = (endtime.getTime() - startime.getTime()) / 1000;
-    console.log("Solution took ", Math.round(timediff * 100) / 100, " [sec]");
 
     this.loadCases[0].solved = true;
 

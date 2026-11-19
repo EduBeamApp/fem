@@ -46,7 +46,6 @@ export class LinearStaticSolver extends Solver {
   }
 
   solve() {
-    const startime = new Date();
     if (!this.codeNumberGenerated) {
       this.generateCodeNumbers();
     }
@@ -106,10 +105,5 @@ export class LinearStaticSolver extends Solver {
         this.loadCases[lc].solved = true;
       }
     }
-
-    const endtime = new Date();
-    const timediff = endtime.getTime() - startime.getTime();
-    // oxlint-disable-next-line no-console -- the solver reports its timing, as it always has
-    console.log("Solution took ", Math.round(timediff * 100) / 100, " [ms]");
   }
 }
