@@ -46,8 +46,8 @@ along a member are in metres from its first node.
 
 ## What's in it
 
-- **Analyses:** `LinearStaticSolver` (load cases) and `EigenValueDynamicSolver` (natural
-  frequencies and mode shapes).
+- **Analysis:** `LinearStaticSolver`, with any number of load cases. (An eigenvalue solver for natural
+  frequencies is in the source but not yet exported.)
 - **Elements:** `Beam2D`, a two-node Timoshenko beam with optional end hinges.
 - **Loads:** nodal forces and moments, point and line loads along members (uniform and
   trapezoidal), temperature, prescribed displacements.

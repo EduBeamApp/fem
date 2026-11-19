@@ -1,7 +1,7 @@
 {
   "name": "@edubeam/fem",
   "version": "0.3.0",
-  "description": "A finite element solver for plane frames and trusses, in TypeScript: Timoshenko beams, nodal and member loads, temperature, settlements, linear statics and natural frequencies.",
+  "description": "A finite element solver for plane frames and trusses, in TypeScript: Timoshenko beams, nodal and member loads, temperature, settlements and linear statics with load cases.",
   "keywords": [
     "finite-element",
     "fem",
