@@ -1,6 +1,6 @@
 # Changelog
 
-## 0.3.1 (unreleased)
+## 0.3.1 (2026-11-19)
 
 - The solvers no longer write timings or eigenvalue diagnostics to the console; a library should stay
   quiet, and a page that solves many models (or renders them on a server) was flooded with
